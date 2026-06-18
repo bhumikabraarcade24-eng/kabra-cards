@@ -17,7 +17,6 @@
 <body class="wedding-texture-bg min-h-screen text-stone-800 p-4 md:p-8">
 
   <div class="max-w-7xl mx-auto">
-    
     <div class="flex justify-between items-center mb-6">
       <a href="index.html" class="text-stone-600 hover:text-stone-900 text-xs font-semibold uppercase tracking-wider flex items-center gap-1 transition">
         ← Exit Gallery
@@ -63,11 +62,8 @@
     
     <div class="relative max-w-4xl w-full flex flex-col justify-center items-center" onclick="event.stopPropagation()">
       <button id="modalPrevBtn" onclick="changeModalImage(-1)" class="absolute left-2 md:-left-16 bg-white/10 hover:bg-white/25 border border-white/20 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl transition shadow cursor-pointer z-10">‹</button>
-      
       <img id="modalTargetImg" class="max-w-full max-h-[80vh] rounded-xl shadow-2xl object-contain transform scale-95 transition-all duration-300 bg-stone-900" src="" alt="High resolution view">
-      
       <button id="modalNextBtn" onclick="changeModalImage(1)" class="absolute right-2 md:-right-16 bg-white/10 hover:bg-white/25 border border-white/20 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl transition shadow cursor-pointer z-10">›</button>
-      
       <div id="modalCountBadge" class="mt-4 bg-stone-800 text-stone-300 font-mono text-[11px] px-3 py-1 rounded-full border border-stone-700">1 / 1</div>
     </div>
   </div>
@@ -86,10 +82,23 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // 🔒 SECURITY GATE EVALUATOR
+    const currentClientPhone = localStorage.getItem("kabra_client_phone");
+    if (!currentClientPhone) {
+      alert("Access Denied. Please submit your request details first.");
+      window.location.href = "index.html";
+    } else {
+      db.collection("requests").doc(currentClientPhone).get().then((doc) => {
+        if (!doc.exists || doc.data().accessGranted !== true) {
+          alert("Access Denied. Your request status has not been approved yet.");
+          window.location.href = "index.html";
+        }
+      });
+    }
+
     let allCardsData = [];
     let selectedCategory = 'all';
     let selectedTag = 'all';
-
     let currentModalImages = [];
     let currentModalIndex = 0;
 
@@ -127,7 +136,6 @@
           <div onclick="openZoomModal('${escapedImagesStr}')" class="aspect-[4/5] bg-stone-100 overflow-hidden relative cursor-zoom-in border-b border-stone-100">
             <img class="w-full h-full object-cover group-hover:scale-105 transition duration-500" src="${displayThumb}" alt="${card.title}">
             <span class="absolute top-3 left-3 bg-stone-900/80 backdrop-blur-sm text-white px-2.5 py-0.5 rounded-md font-mono text-[10px] font-bold tracking-wider uppercase">${card.tag}</span>
-            
             ${allImagesArray.length > 1 ? `
               <span class="absolute bottom-3 right-3 bg-amber-500 text-stone-950 px-2.5 py-0.5 rounded-md font-mono text-[10px] font-bold shadow-md tracking-wide">
                 📄 ${allImagesArray.length} Photos
@@ -179,7 +187,6 @@
 
         const modal = document.getElementById('zoomModal');
         modal.classList.remove('opacity-0', 'pointer-events-none');
-        
         renderModalImage();
       } catch(e) {
         console.error("Error configuration parsing:", e);
@@ -194,7 +201,6 @@
 
       img.classList.add('scale-95');
       img.src = currentModalImages[currentModalIndex];
-      
       countBadge.textContent = `${currentModalIndex + 1} / ${currentModalImages.length}`;
 
       if (currentModalImages.length <= 1) {
@@ -204,7 +210,6 @@
         prevBtn.classList.remove('hidden');
         nextBtn.classList.remove('hidden');
       }
-
       setTimeout(() => img.classList.remove('scale-95'), 50);
     }
 

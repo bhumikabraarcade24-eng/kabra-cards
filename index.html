@@ -69,26 +69,52 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // Auto-redirect if user was already approved previously
+    const savedPhone = localStorage.getItem("kabra_client_phone");
+    if (savedPhone) {
+      checkAccessStatus(savedPhone);
+    }
+
     document.getElementById('requestAccessForm').addEventListener('submit', function(e) {
       e.preventDefault();
       
       const fullName = document.getElementById('clientName').value;
-      const phoneNumber = document.getElementById('clientPhone').value;
+      const phoneNumber = document.getElementById('clientPhone').value.trim();
 
-      db.collection("requests").add({
+      localStorage.setItem("kabra_client_phone", phoneNumber);
+
+      db.collection("requests").doc(phoneNumber).set({
         name: fullName,
         phone: phoneNumber,
         accessGranted: false,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
       })
       .then(() => {
-        alert("Your request has been sent to the shop owner! Once the owner grants permission, you will be able to browse the catalog.");
-        document.getElementById('requestAccessForm').reset();
+        alert("Your request has been sent! Please keep this page open. Once the owner grants permission, you will be automatically redirected to the gallery.");
+        startApprovalListener(phoneNumber);
       })
       .catch((error) => {
         alert("Database connection alert: " + error.message);
       });
     });
+
+    function checkAccessStatus(phone) {
+      db.collection("requests").doc(phone).get().then((doc) => {
+        if (doc.exists && doc.data().accessGranted === true) {
+          window.location.href = "gallery.html";
+        } else if (doc.exists) {
+          startApprovalListener(phone);
+        }
+      });
+    }
+
+    function startApprovalListener(phone) {
+      db.collection("requests").doc(phone).onSnapshot((doc) => {
+        if (doc.exists && doc.data().accessGranted === true) {
+          window.location.href = "gallery.html";
+        }
+      });
+    }
   </script>
 </body>
 </html>
