@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Master Hub - Admin Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    :root { --bg-pastel-beige: #F9F6F0; }
+    .wedding-texture-bg {
+      background-color: var(--bg-pastel-beige);
+      background-image: radial-gradient(#e5e1da 1.5px, transparent 1.5px);
+      background-size: 24px 24px;
+    }
+  </style>
+</head>
+<body class="wedding-texture-bg min-h-screen text-stone-800">
+
+  <div id="loginGate" class="fixed inset-0 bg-stone-900/40 backdrop-blur-md flex items-center justify-center z-50 p-4">
+    <div class="bg-white p-6 md:p-8 rounded-2xl border border-stone-200 shadow-xl max-w-md w-full space-y-4 text-center">
+      <div class="inline-flex p-3 bg-amber-50 rounded-full text-amber-600 font-serif text-xl mb-2">🔐</div>
+      <h2 class="text-2xl font-serif text-stone-900">Owner Access Required</h2>
+      <p class="text-xs text-stone-500">Please provide your administrative security password to manage Kabra Cards parameters.</p>
+      <input type="password" id="adminPassword" class="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none text-center tracking-widest text-sm" placeholder="••••••••">
+      <button onclick="verifyAdminAuth()" class="w-full bg-stone-800 hover:bg-stone-950 text-white font-medium py-2.5 rounded-xl transition text-sm shadow-sm cursor-pointer">
+        Authenticate & Initialize Console
+      </button>
+    </div>
+  </div>
+
+  <div id="dashboardContent" class="hidden p-4 md:p-8 max-w-7xl mx-auto space-y-10">
+    
+    <div class="flex flex-col sm:flex-row justify-between items-center bg-white p-6 rounded-2xl border border-stone-200 shadow-sm gap-4">
+      <div>
+        <h1 class="text-3xl font-serif text-stone-900">Kabra Cards Studio Hub</h1>
+        <p class="text-xs text-stone-500 mt-0.5">Control client parameters and scale dynamic portfolio contents</p>
+      </div>
+      <div class="flex flex-wrap gap-2 items-center">
+        <a href="index.html" class="bg-stone-100 text-stone-700 hover:bg-stone-200 px-4 py-2 rounded-xl text-xs font-medium border border-stone-200 transition flex items-center gap-1">
+          🏠 View Front Gate
+        </a>
+        <button onclick="logoutAdmin()" class="bg-stone-900 text-amber-400 px-4 py-2 rounded-xl text-xs font-mono font-bold border border-stone-800 shadow-sm hover:text-rose-400 transition cursor-pointer">
+          🛡️ OWNER SESSION: LOGOUT
+        </button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+      
+      <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm space-y-4">
+        <h2 class="text-xl font-serif text-stone-900 border-b border-stone-100 pb-2">➕ Upload Design Card</h2>
+        <form id="portfolioUploadForm" class="space-y-4">
+          <div>
+            <label class="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Card Title</label>
+            <input type="text" id="cardTitle" required class="w-full mt-1 p-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none text-sm" placeholder="e.g., Luxury Royal Set">
+          </div>
+          <div>
+            <label class="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Card Photos (Select Multiple Together)</label>
+            <input type="file" id="cardPhotos" accept="image/*" multiple required class="w-full mt-1 p-2 bg-stone-50 border border-stone-200 border-dashed rounded-xl focus:outline-none text-sm cursor-pointer file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-stone-800 file:text-white hover:file:bg-stone-700">
+            <p class="text-[10px] text-stone-400 mt-1">Hold Ctrl (or Cmd) to choose multiple photos of this exact card.</p>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Category</label>
+              <select id="cardCategory" class="w-full mt-1 p-2 bg-stone-50 border border-stone-200 rounded-xl text-sm">
+                <option value="hindu">Hindu Card</option>
+                <option value="muslim">Muslim Card</option>
+                <option value="envelope">Envelope</option>
+                <option value="box">Box Design</option>
+                <option value="birthday">Birthday Invitation</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Tag</label>
+              <select id="cardTag" class="w-full mt-1 p-2 bg-stone-50 border border-stone-200 rounded-xl text-sm">
+                <option value="new">New</option>
+                <option value="latest">Latest</option>
+                <option value="trending">Trending</option>
+                <option value="customizable">Customizable</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Short Description</label>
+            <textarea id="cardDescription" rows="2" class="w-full mt-1 p-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none text-sm" placeholder="Optional details..."></textarea>
+          </div>
+
+          <div id="uploadStatusContainer" class="hidden text-xs font-mono p-3 bg-amber-50 text-amber-800 rounded-xl border border-amber-200 text-center">
+            ⏳ <span id="uploadProgressLabel">Processing files...</span>
+          </div>
+
+          <button type="submit" id="submitBtn" class="w-full bg-stone-800 hover:bg-stone-950 text-white font-medium py-2.5 rounded-xl transition text-sm shadow-sm cursor-pointer">
+            Publish Card to Gallery
+          </button>
+        </form>
+      </div>
+
+      <div class="lg:col-span-2 space-y-8">
+        
+        <div class="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
+          <div class="p-5 border-b border-stone-100 bg-stone-50/50 flex justify-between items-center">
+            <h2 class="font-serif text-lg text-stone-900">📋 Guest Permission Logs</h2>
+            <span id="requestCount" class="bg-stone-200 text-stone-700 text-xs font-bold px-2.5 py-0.5 rounded-full">0 Entries</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+              <thead>
+                <tr class="bg-stone-50 text-stone-400 uppercase text-[10px] font-bold tracking-wider border-b border-stone-100">
+                  <th class="p-4 pl-6">Client Name</th>
+                  <th class="p-4">Contact Number</th>
+                  <th class="p-4 text-center">Status Mode</th>
+                  <th class="p-4 pr-6 text-right">Execution</th>
+                </tr>
+              </thead>
+              <tbody id="requestsTableBody" class="divide-y divide-stone-100">
+                <tr>
+                  <td colspan="4" class="p-8 text-center text-stone-400">Syncing Cloud Database parameters...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm space-y-4">
+          <h2 class="text-xl font-serif text-stone-900 border-b border-stone-100 pb-2">🗑️ Remove Active Cards From Collection</h2>
+          <div id="adminGalleryGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <p class="text-sm text-stone-400 col-span-full py-4 text-center">Loading portfolio inventory items...</p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <div id="imageZoomModal" class="hidden fixed inset-0 bg-stone-900/90 backdrop-blur-md flex items-center justify-center z-50 p-4" onclick="closeZoomModal()">
+    <div class="relative max-w-4xl w-full flex flex-col justify-center items-center" onclick="event.stopPropagation()">
+      <button onclick="closeZoomModal()" class="absolute -top-14 right-2 bg-white/10 hover:bg-white/20 text-white p-2 rounded-full text-xl transition-all w-10 h-10 flex items-center justify-center border border-white/20 shadow-lg cursor-pointer">✕</button>
+      <button id="modalPrevBtn" onclick="changeModalImage(-1)" class="absolute left-2 md:-left-16 bg-white/10 hover:bg-white/25 border border-white/20 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl transition shadow cursor-pointer z-10">‹</button>
+      <img id="modalZoomTarget" src="" class="max-h-[80vh] max-w-full rounded-2xl object-contain shadow-2xl border border-stone-700/50 bg-stone-950" alt="Expanded Design View">
+      <button id="modalNextBtn" onclick="changeModalImage(1)" class="absolute right-2 md:-right-16 bg-white/10 hover:bg-white/25 border border-white/20 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl transition shadow cursor-pointer z-10">›</button>
+      <div id="modalCountBadge" class="mt-4 bg-stone-800 text-stone-300 font-mono text-[11px] px-3 py-1 rounded-full border border-stone-700">1 / 1</div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script>
+    const CLOUDINARY_CLOUD_NAME = "dj4b2iwrv"; 
+    const CLOUDINARY_UPLOAD_PRESET = "kabra_preset"; 
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAy-4z99Ia3-og9p4IlH3fUi06zoMUft-4",
+      authDomain: "kabra-cards.firebaseapp.com",
+      projectId: "kabra-cards",
+      storageBucket: "kabra-cards.firebasestorage.app",
+      messagingSenderId: "285718844469",
+      appId: "1:285718844469:web:72725ee725ec2f54f68d7c"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let currentModalImages = [];
+    let currentModalIndex = 0;
+
+    function verifyAdminAuth() {
+      const enteredPassword = document.getElementById('adminPassword').value;
+      if (enteredPassword === "kabra2026") { 
+        sessionStorage.setItem("isAdminAuthenticated", "true");
+        document.getElementById('loginGate').classList.add('hidden');
+        document.getElementById('dashboardContent').classList.remove('hidden');
+        initializeLiveDashboardStreams();
+      } else {
+        alert("🔒 Unauthorized entry password. Please check your credentials.");
+      }
+    }
+
+    function logoutAdmin() {
+      sessionStorage.removeItem("isAdminAuthenticated");
+      window.location.reload();
+    }
+
+    if(sessionStorage.getItem("isAdminAuthenticated") === "true") {
+      document.getElementById('loginGate').classList.add('hidden');
+      document.getElementById('dashboardContent').classList.remove('hidden');
+      window.addEventListener('DOMContentLoaded', initializeLiveDashboardStreams);
+    }
+
+    function initializeLiveDashboardStreams() {
+      const tableBody = document.getElementById('requestsTableBody');
+      const requestCountBadge = document.getElementById('requestCount');
+
+      db.collection("requests").orderBy("timestamp", "desc").onSnapshot((snapshot) => {
+        tableBody.innerHTML = "";
+        requestCountBadge.textContent = snapshot.size + " Record(s)";
+
+        if (snapshot.empty) {
+          tableBody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-stone-400">No incoming entries logged.</td></tr>`;
+          return;
+        }
+
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          const docId = doc.id;
+          const statusPill = data.accessGranted 
+            ? `<span class="bg-emerald-50 text-emerald-700 px-2.5 py-0.5 rounded-full text-xs font-semibold border border-emerald-100">Approved</span>`
+            : `<span class="bg-amber-50 text-amber-700 px-2.5 py-0.5 rounded-full text-xs font-semibold border border-amber-100">Pending</span>`;
+
+          const actionButton = data.accessGranted
+            ? `<button onclick="updateAccess('${docId}', false)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs px-3 py-1.5 rounded-xl border border-rose-200 transition cursor-pointer">Revoke</button>`
+            : `<button onclick="updateAccess('${docId}', true)" class="bg-stone-800 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 rounded-xl transition shadow-sm font-medium cursor-pointer">Grant Access</button>`;
+
+          const row = document.createElement('tr');
+          row.className = "hover:bg-stone-50/50 transition";
+          row.innerHTML = `
+            <td class="p-4 pl-6 font-medium text-stone-900">${data.name || 'Anonymous'}</td>
+            <td class="p-4 text-stone-600 font-mono text-xs">${data.phone || 'N/A'}</td>
+            <td class="p-4 text-center">${statusPill}</td>
+            <td class="p-4 pr-6 text-right">${actionButton}</td>
+          `;
+          tableBody.appendChild(row);
+        });
+      });
+
+      const galleryGrid = document.getElementById('adminGalleryGrid');
+      db.collection("portfolio").orderBy("timestamp", "desc").onSnapshot((snapshot) => {
+        galleryGrid.innerHTML = "";
+        if (snapshot.empty) {
+          galleryGrid.innerHTML = `<p class="text-xs text-stone-400 col-span-full py-4 text-center">No active design cards published in your collection.</p>`;
+          return;
+        }
+
+        snapshot.forEach((doc) => {
+          const card = doc.data();
+          const docId = doc.id;
+          
+          const allImagesArray = card.imageUrls && card.imageUrls.length > 0 ? card.imageUrls : [card.imageUrl || ''];
+          const displayThumb = allImagesArray[0];
+          const escapedImagesStr = encodeURIComponent(JSON.stringify(allImagesArray));
+
+          const thumbCard = document.createElement('div');
+          thumbCard.className = "group relative bg-white border border-stone-200 rounded-xl overflow-hidden p-2 text-center flex flex-col justify-between shadow-sm hover:shadow-md transition duration-200";
+          thumbCard.innerHTML = `
+            <div class="relative overflow-hidden rounded-lg mb-2 bg-stone-50">
+              <img src="${displayThumb}" onclick="openZoomModal('${escapedImagesStr}')" class="w-full h-28 object-cover cursor-zoom-in hover:scale-105 transition duration-300" alt="Preview" title="Click to inspect all design photos">
+              ${allImagesArray.length > 1 ? `<span class="absolute top-1.5 right-1.5 bg-stone-900/80 text-white text-[9px] px-1.5 py-0.5 rounded-md font-bold tracking-wide backdrop-blur-sm">📄 ${allImagesArray.length} Files</span>` : ''}
+            </div>
+            <h4 class="text-xs font-semibold text-stone-800 truncate px-1">${card.title || 'Untitled'}</h4>
+            <p class="text-[10px] text-stone-400 capitalize mb-2">${card.category || 'General'}</p>
+            <button onclick="deleteCard('${docId}')" class="w-full py-1 bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 text-[11px] font-semibold rounded-md border border-rose-100 transition cursor-pointer">
+              Remove Card
+            </button>
+          `;
+          galleryGrid.appendChild(thumbCard);
+        });
+      });
+    }
+
+    function updateAccess(id, status) {
+      db.collection("requests").doc(id).update({ accessGranted: status });
+    }
+
+    async function deleteCard(id) {
+      if (confirm("Are you sure you want to permanently remove this design card from your public collection gallery?")) {
+        try {
+          await db.collection("portfolio").doc(id).delete();
+          alert("Card removed successfully!");
+        } catch (error) {
+          alert("Error clearing document: " + error.message);
+        }
+      }
+    }
+
+    function openZoomModal(escapedImages) {
+      try {
+        currentModalImages = JSON.parse(decodeURIComponent(escapedImages));
+        currentModalIndex = 0;
+        if (!currentModalImages || currentModalImages.length === 0) return;
+
+        document.getElementById('imageZoomModal').classList.remove('hidden');
+        renderModalImage();
+      } catch(e) {
+        console.error("Error breaking array parameters setup:", e);
+      }
+    }
+
+    function renderModalImage() {
+      const modalImg = document.getElementById('modalZoomTarget');
+      const countBadge = document.getElementById('modalCountBadge');
+      const prevBtn = document.getElementById('modalPrevBtn');
+      const nextBtn = document.getElementById('modalNextBtn');
+
+      modalImg.src = currentModalImages[currentModalIndex];
+      countBadge.textContent = `${currentModalIndex + 1} / ${currentModalImages.length}`;
+
+      if (currentModalImages.length <= 1) {
+        prevBtn.classList.add('hidden');
+        nextBtn.classList.add('hidden');
+      } else {
+        prevBtn.classList.remove('hidden');
+        nextBtn.classList.remove('hidden');
+      }
+    }
+
+    function changeModalImage(direction) {
+      currentModalIndex += direction;
+      if (currentModalIndex >= currentModalImages.length) currentModalIndex = 0;
+      if (currentModalIndex < 0) currentModalIndex = currentModalImages.length - 1;
+      renderModalImage();
+    }
+
+    function closeZoomModal() {
+      document.getElementById('imageZoomModal').classList.add('hidden');
+    }
+
+    document.addEventListener('keydown', (e) => {
+      const modal = document.getElementById('imageZoomModal');
+      if (modal && !modal.classList.contains('hidden')) {
+        if (e.key === 'ArrowRight') changeModalImage(1);
+        if (e.key === 'ArrowLeft') changeModalImage(-1);
+        if (e.key === 'Escape') closeZoomModal();
+      }
+    });
+
+    document.getElementById('portfolioUploadForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const title = document.getElementById('cardTitle').value;
+      const fileInput = document.getElementById('cardPhotos');
+      const category = document.getElementById('cardCategory').value;
+      const tag = document.getElementById('cardTag').value;
+      const description = document.getElementById('cardDescription').value;
+      
+      const files = fileInput.files;
+      if (files.length === 0) return;
+
+      const submitBtn = document.getElementById('submitBtn');
+      const statusContainer = document.getElementById('uploadStatusContainer');
+      const progressLabel = document.getElementById('uploadProgressLabel');
+
+      submitBtn.disabled = true;
+      submitBtn.classList.add('opacity-50');
+      statusContainer.classList.remove('hidden');
+
+      const uploadedUrls = [];
+
+      for (let i = 0; i < files.length; i++) {
+        const currentFile = files[i];
+        progressLabel.textContent = `Uploading photo ${i + 1} of ${files.length}...`;
+
+        const formData = new FormData();
+        formData.append('file', currentFile);
+        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+        try {
+          const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+            method: 'POST',
+            body: formData
+          });
+
+          if (!response.ok) throw new Error("Cloud rejected connection payload request.");
+
+          const jsonResult = await response.json();
+          uploadedUrls.push(jsonResult.secure_url);
+
+        } catch (error) {
+          alert(`Error uploading file [${currentFile.name}]: ${error.message}\nEnsure your Preset Name is valid.`);
+          submitBtn.disabled = false;
+          submitBtn.classList.remove('opacity-50');
+          statusContainer.classList.add('hidden');
+          return;
+        }
+      }
+
+      try {
+        progressLabel.textContent = "Saving unified portfolio parameters...";
+        
+        await db.collection("portfolio").add({
+          title: title,
+          imageUrl: uploadedUrls[0] || "", 
+          imageUrls: uploadedUrls, 
+          category: category,
+          tag: tag,
+          description: description,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        alert(`Success! Created 1 card entry consisting of ${uploadedUrls.length} image attachments.`);
+        document.getElementById('portfolioUploadForm').reset();
+      } catch (error) {
+        alert(`Failed to save document record: ${error.message}`);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-50');
+        statusContainer.classList.add('hidden');
+      }
+    });
+  </script>
+</body>
+</html>
